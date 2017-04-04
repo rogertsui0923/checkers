@@ -9,6 +9,7 @@ export default class Game extends Component {
     this.state = {
       openGames: [],
       game: null,
+      AI: false,
       playAsWhite: true,
       board: [],
       player: null,
@@ -21,6 +22,7 @@ export default class Game extends Component {
     this.piece        = this.piece.bind(this);
     this.filterMoves  = this.filterMoves.bind(this);
     this.startGame    = this.startGame.bind(this);
+    this.startAIGame    = this.startAIGame.bind(this);
   }
 
   componentDidMount(event) {
@@ -89,6 +91,39 @@ export default class Game extends Component {
     }
   }
 
+  startAIGame() {
+    fetch('http://localhost:3000/games/', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        black_id: 1,
+        white_id: 2,
+      })
+    })
+    .then(function(response) { return response.json(); })
+    .then((response) => {
+      this.setState({ game: response.game, board: response.board, player: response.player, moves: response.moves, playAsWhite: true, AI: true });
+    })
+    .then(() => {
+      const cable = ActionCable.createConsumer("ws://localhost:3000/cable");
+      const channel = cable.subscriptions.create({channel: "GameChannel", id: this.state.game}, {
+        connected: () => {
+          console.log(`Connecting to Game ${this.state.game}`);
+        },
+        disconnected: () => {
+          console.log(`Disconnecting from Game ${this.state.game}`);
+        },
+        received: (data) => {
+          this.setState({ board: data.board, player: data.player, moves: data.moves, selected: null, movesFromSelected: [] });
+        },
+      });
+    })
+    .catch(console.error);
+  }
+
   clickHandler(event) {
     if (this.state.playAsWhite && this.state.player === 'B') return;
     if (!this.state.playAsWhite && this.state.player === 'W') return;
@@ -113,7 +148,10 @@ export default class Game extends Component {
         }
       }
 
-      fetch(`http://localhost:3000/games/${this.state.game}/moves`, {
+      let url = `http://localhost:3000/games/${this.state.game}/moves`;
+      if (this.state.AI) url += '/ai';
+
+      fetch(url, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -164,6 +202,7 @@ export default class Game extends Component {
         <div>
           <h1>Start a new game or join an existing game!</h1>
           <button onClick={this.startGame}>Start your own game</button>
+          <button onClick={this.startAIGame}>Play against an AI</button>
           <h3>Open Games</h3>
           <ul>
             {this.state.openGames.map((game) => {

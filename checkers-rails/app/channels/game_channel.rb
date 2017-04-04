@@ -3,9 +3,6 @@ class GameChannel < ApplicationCable::Channel
     @id = params[:id]
     stop_all_streams
     stream_from "game#{@id}"
-    puts '#################################'
-    puts "Subscribe to stream game#{@id}"
-    puts '#################################'
   end
 
   def unsubscribed

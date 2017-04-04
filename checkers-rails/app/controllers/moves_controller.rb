@@ -16,4 +16,11 @@ class MovesController < ApplicationController
     end
     ActionCable.server.broadcast "game#{@game.id}", { board: @move.board, player: @move.current_player, moves: all_valid_moves }
   end
+
+  def ai
+    create()
+    heuristic, ai_move = @move.minimax(@move.board, 'B', 5)
+    @new_move = Move.create(game: @game, board: @move.move(ai_move, 'B'), white_move: true)
+    ActionCable.server.broadcast "game#{@game.id}", { board: @new_move.board, player: 'W', moves: @new_move.all_valid_moves('W') }
+  end
 end

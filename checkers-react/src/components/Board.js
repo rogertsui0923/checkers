@@ -7,11 +7,7 @@ function King(props) {
     backgroundColor: 'Orange',
     borderRadius: '50%',
   };
-
-  return (
-    <div style={styles}>
-    </div>
-  )
+  return <div style={styles}></div>;
 }
 
 function Piece(props) {
@@ -19,7 +15,7 @@ function Piece(props) {
 
   let color = '';
   if (piece.toUpperCase() === 'W') color = 'WhiteSmoke';
-  if (piece.toUpperCase() === 'B') color = 'SlateGray';
+  if (piece.toUpperCase() === 'B') color = 'DarkRed';
 
   const styles = {
     display: 'flex',
@@ -31,8 +27,6 @@ function Piece(props) {
     borderRadius: '50%',
     border: selected ? '5px solid black' : '',
   };
-
-
 
   const is_king = (piece === 'W' || piece === 'B');
   if (is_king) return <div style={styles}><King/></div>;
@@ -48,9 +42,9 @@ function Square(props) {
     alignItems: 'center',
     height: '100%',
     width: '12.5%',
-    backgroundColor: odd ? 'BurlyWood' : 'SaddleBrown',
+    backgroundColor: odd ? 'BurlyWood' : 'DarkGreen',
     boxSizing: 'border-box',
-    border: (moves.includes(id)) ? '5px solid blue' : '',
+    border: (moves.includes(id)) ? '5px solid OrangeRed' : '',
   };
 
   return (
@@ -70,38 +64,49 @@ function Row(props) {
   };
 
   function generateSquare(piece, i) {
-    const component = <Square piece={piece} id={`${id}${i}`} odd={odd} key={i} selected={selected} moves={moves} onClick={onClick}/>;
+    const component = (
+      <Square piece={piece}
+              id={`${id}${i}`}
+              odd={odd}
+              key={i}
+              selected={selected}
+              moves={moves}
+              onClick={onClick}/>
+      );
     odd = !odd;
     return component;
   }
 
-  return (
-    <div style={styles}>
-      {row.map(generateSquare)}
-    </div>
-  )
+  return <div style={styles}>{ row.map(generateSquare) }</div>;
 }
 
 
 export default function Board(props) {
-  let {board, selected, moves, onClick} = props;
-
+  let {board, selected, moves, onClick, isWhite} = props;
   let odd = true;
 
   const styles = {
-    width: '80vh',
-    height: '80vh',
+    width: '80vmin',
+    height: '80vmin',
+    border: 'solid MidnightBlue 30px',
+    transform: isWhite ? '' : 'rotate(180deg)',
   };
 
   const generateRow = (row, i) => {
-    const component = <Row row={row} id={i} odd={odd} selected={selected} moves={moves} onClick={onClick} key={i}/>;
+    const component = (
+      <Row row={row}
+           id={i}
+           odd={odd}
+           selected={selected}
+           moves={moves}
+           onClick={onClick}
+           key={i}/>
+    );
     odd = !odd;
     return component;
   }
 
   return (
-    <div className='board' style={styles}>
-      {board.map(generateRow)}
-    </div>
+    <div className='board' style={styles}>{ board.map(generateRow) }</div>
   );
 }

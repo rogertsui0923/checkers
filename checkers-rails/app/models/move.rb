@@ -101,11 +101,7 @@ class Move < ApplicationRecord
 
   def count(piece, board=self.board)
     n = 0
-    board.each do |row|
-      row.each do |p|
-        n += 1 if p == piece
-      end
-    end
+    board.each { |row| row.each { |p| n += 1 if p == piece } }
     return n
   end
 

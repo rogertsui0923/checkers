@@ -139,7 +139,7 @@ class Move < ApplicationRecord
         next_player = player
       end
       h, next_move = minimax(next_board, next_player, depth - 1, next_piece)
-      p '      ' * (5-depth) + m + '       ' + h.to_s + player
+      # p '      ' * (5-depth) + m + '       ' + h.to_s + player
       if (is_self && h > extreme) || (!is_self && h < extreme)
         extreme = h
         best_move = m

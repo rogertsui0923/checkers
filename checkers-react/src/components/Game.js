@@ -78,6 +78,10 @@ export default class Game extends Component {
       received: (data) => {
         this.updateState(data);
         this.setState({ selected: null, filteredMoves: [] });
+        // if (data.moves.length === 0) {
+        //   let me = this.state.isWhite ? 'W' : 'B';
+        //   (data.player === me) ? alert('You lost!') : alert('You won!');
+        // }
       },
     });
   }

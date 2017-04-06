@@ -19,8 +19,8 @@ class GamesController < ApplicationController
     render json: {
       game: @game.id,
       board: @move.board,
-      player: @move.current_player,
-      moves: @move.all_valid_moves(@move.current_player)
+      player: @move.player,
+      moves: @move.all_valid_moves(@move.player)
     }
   end
 

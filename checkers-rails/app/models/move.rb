@@ -8,7 +8,7 @@ class Move < ApplicationRecord
     self.board ||= new_board
   end
 
-  def current_player
+  def player
     self.white_move ? 'W' : 'B'
   end
 
@@ -67,8 +67,7 @@ class Move < ApplicationRecord
   end
 
   def enforce_jump(moves)
-    jumps = []
-    moves.each { |move| jumps.push(move) if move.length == 6 }
+    jumps = moves.select { |move| move.length == 6 }
     return jumps if jumps.length > 0
     return moves
   end
@@ -87,6 +86,10 @@ class Move < ApplicationRecord
     updated_board[new_r][new_c] = piece
     updated_board[eat_r][eat_c] = '-' if m.length == 6
     return updated_board
+  end
+
+  def jumps(r, c, player, board=self.board)
+    return valid_moves(r, c, player, board).select { |move| move.length == 6 }
   end
 
   def display(board=self.board)
@@ -114,7 +117,6 @@ class Move < ApplicationRecord
 
   def minimax(board, player, depth, piece=nil)
     return [heuristic(board), nil] if depth == 0
-
 
     moves = all_valid_moves(player, board)
     moves = valid_moves(piece[0].to_i, piece[1].to_i, player, board) if piece

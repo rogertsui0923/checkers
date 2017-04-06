@@ -1,50 +1,59 @@
 class MovesController < ApplicationController
-  def create
+  # @game is the current game instance
+  # @prev is the previous move instance
+  # @move is the current move instance
+  # @m is the move string from @prev to @move, r, c, new_r, new_c, eat_r, eat_c
+  # @jumps is an array of moves if multiple jumps are possible
+  # more_jumps must return true to use @jumps
+
+  def initialize_variables
     @game = Game.find(params[:game_id])
-    move = params[:move]
-    prev = @game.moves.order(created_at: :desc).first
-    prev_player = prev.current_player
-    board = prev.move(move, prev_player)
-    @move = Move.create(game: @game, board: board, white_move: !prev.white_move)
-    all_valid_moves = @move.all_valid_moves(@move.current_player)
-    @has_more_jumps = false
-    if move.length == 6
-      double_jumps = @move.valid_moves(move[2].to_i, move[3].to_i, prev.current_player)
-      if double_jumps.length > 0 && double_jumps[0].length == 6
-        @has_more_jumps = true
-        @move.update(white_move: prev.white_move)
-        all_valid_moves = double_jumps
-      end
+    @prev = @game.moves.order(created_at: :desc).first
+    @m = params[:move]
+  end
+
+  def create_move(board, white_move)
+    Move.create(game: @game, board: board, white_move: white_move)
+  end
+
+  def broadcast(board, player, moves)
+    ActionCable.server.broadcast "game#{@game.id}", {
+      board: board,
+      player: player,
+      moves: moves
+    }
+  end
+
+  def create_move_and_check_jumps
+    @move = create_move(@prev.move(@m, @prev.player), !@prev.white_move)
+    moves = @move.all_valid_moves(@move.player)
+
+    jumps = @move.jumps(@m[2].to_i, @m[3].to_i, @prev.player)
+    has_further_jumps = (@m.length == 6 && jumps.length > 0)
+    if has_further_jumps
+      @move.update(white_move: @prev.white_move)
+      moves = jumps
     end
-    ActionCable.server.broadcast "game#{@game.id}", { board: @move.board, player: @move.current_player, moves: all_valid_moves }
+
+    broadcast(@move.board, @move.player, moves)
+    return has_further_jumps
+  end
+
+  def create
+    initialize_variables()
+    create_move_and_check_jumps()
   end
 
   def ai
     create()
-    return if @has_more_jumps
+    return if @move.white_move
 
-    current_piece = nil
+    piece = nil
     loop do
-      heuristic, ai_move = @move.minimax(@move.board, 'B', 5, current_piece)
-      new_board = @move.move(ai_move, 'B')
-      @new_move = Move.create(game: @game, board: new_board, white_move: true)
-      ai_has_more_jumps = false
-      if ai_move.length == 6
-        double_jumps = @new_move.valid_moves(ai_move[2].to_i, ai_move[3].to_i, 'B')
-        if double_jumps.length > 0 && double_jumps[0].length == 6
-          ai_has_more_jumps = true
-          @new_move.update(white_move: false)
-          current_piece = ai_move[2..3]
-        end
-      end
-      if !ai_has_more_jumps
-        ActionCable.server.broadcast "game#{@game.id}", { board: @new_move.board, player: 'W', moves: @new_move.all_valid_moves('W') }
-        break
-      else
-        ActionCable.server.broadcast "game#{@game.id}", { board: @new_move.board, player: 'B', moves: [] }
-      end
-      @move = @new_move
-
+      @prev = @move
+      heuristic, @m = @prev.minimax(@prev.board, @prev.player, 5, piece)
+      break if !create_move_and_check_jumps()
+      piece = @m[2..3]
     end
   end
 end

@@ -117,6 +117,41 @@ class Move < ApplicationRecord
 
   def minimax(board, player, depth, piece=nil)
     return [heuristic(board), nil] if depth == 0
+    moves = []
+    if piece
+      moves = jumps(piece[0].to_i, piece[1].to_i, player, board)
+    else
+      moves = all_valid_moves(player, board)
+    end
+    return [heuristic(board), nil] if moves.length == 0
+    is_self = (player == 'B')
+    must_jump = (moves[0].length == 6)
+
+    extreme = is_self ? -999999 : 999999
+    best_move = nil
+    moves.each do |m|
+      next_board = move(m, player, board)
+      next_piece = nil
+      next_player = player == 'B' ? 'W' : 'B'
+      next_moves = jumps(m[2].to_i, m[3].to_i, player, next_board) if must_jump
+      if (must_jump && next_moves.length > 0)
+        next_piece = m[2..4]
+        next_player = player
+      end
+      h, next_move = minimax(next_board, next_player, depth - 1, next_piece)
+      p '      ' * (5-depth) + m + '       ' + h.to_s + player
+      if (is_self && h > extreme) || (!is_self && h < extreme)
+        extreme = h
+        best_move = m
+      end
+    end
+    return [extreme, best_move]
+  end
+
+
+
+  def minimaxWithBugs(board, player, depth, piece=nil)
+    return [heuristic(board), nil] if depth == 0
 
     moves = all_valid_moves(player, board)
     moves = valid_moves(piece[0].to_i, piece[1].to_i, player, board) if piece
@@ -135,7 +170,7 @@ class Move < ApplicationRecord
         next_piece = m[2..4]
         next_player = player
       end
-      h, next_move = minimax(next_board, next_player, depth - 1, next_piece)
+      h, next_move = minimaxWithBugs(next_board, next_player, depth - 1, next_piece)
       if (is_self && h > extreme) || (!is_self && h < extreme)
         extreme = h
         best_move = m

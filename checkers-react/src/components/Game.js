@@ -35,6 +35,7 @@ export default class Game extends Component {
     this.games        = this.games.bind(this);
     this.start        = this.start.bind(this);
     this.startAI      = this.startAI.bind(this);
+    this.back         = this.back.bind(this);
     this.clickHandler = this.clickHandler.bind(this);
     this.sendMove     = this.sendMove.bind(this);
   }
@@ -78,10 +79,6 @@ export default class Game extends Component {
       received: (data) => {
         this.updateState(data);
         this.setState({ selected: null, filteredMoves: [] });
-        // if (data.moves.length === 0) {
-        //   let me = this.state.isWhite ? 'W' : 'B';
-        //   (data.player === me) ? alert('You lost!') : alert('You won!');
-        // }
       },
     });
   }
@@ -107,6 +104,20 @@ export default class Game extends Component {
         .catch(console.error);
       this.setupWebSocket(id);
     }
+  }
+
+  back() {
+    this.setState({
+      openGames: [],
+      game: null,
+      isWhite: true,
+      AI: false,
+      board: [],
+      player: null,
+      moves: [],
+      selected: null,
+      filteredMoves: [],
+    });
   }
 
   startAI() {
@@ -156,6 +167,15 @@ export default class Game extends Component {
       headers: HEADERS,
       body: JSON.stringify({ move: move }),
     });
+  }
+
+  checkWin() {
+    let message = "";
+    if (this.state.moves.length === 0) {
+      let me = this.state.isWhite ? 'W' : 'B';
+      message = (this.state.player === me) ? 'You lost!' : 'You won!'
+    }
+    return message;
   }
 
   render() {
@@ -213,6 +233,8 @@ export default class Game extends Component {
       height: '100vh',
       justifyContent: 'center',
       alignItems: 'center',
+      flexDirection: 'column',
+      color: 'white',
     }
 
     if (this.state.game) return (
@@ -222,6 +244,8 @@ export default class Game extends Component {
                selected={this.state.selected}
                moves={this.state.filteredMoves}
                onClick={this.clickHandler}/>
+        <h3>{this.checkWin()}</h3>
+        <button onClick={this.back} style={btn}>Back to Home</button>
       </div>
     );
 

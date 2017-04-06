@@ -86,9 +86,9 @@ export default function Board(props) {
   let odd = true;
 
   const styles = {
-    width: '80vmin',
-    height: '80vmin',
-    border: 'solid MidnightBlue 30px',
+    width: '75vmin',
+    height: '75vmin',
+    border: 'solid MidnightBlue 3vh',
     transform: isWhite ? '' : 'rotate(180deg)',
   };
 

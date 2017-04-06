@@ -186,7 +186,21 @@ export default class Game extends Component {
     };
 
     const gameList = {
+      display: 'flex',
+      alignItems: 'center',
+      flexDirection: 'column',
+      color: 'white',
+      backgroundImage: `url(${Background})`,
+      height: '100vh',
+    }
 
+    const list = {
+      listStyleType: 'none',
+      padding: '0px',
+    }
+
+    const link = {
+      color: 'white',
     }
 
     const gamePage = {
@@ -209,11 +223,11 @@ export default class Game extends Component {
 
     if (this.state.openGames.length > 0) return (
       <div style={gameList}>
-        <h3>Open Games</h3>
-        <ul>
+        <h1>Open Games</h1>
+        <ul style={list}>
           {this.state.openGames.map((game) => {
             return (
-              <li key={game}><a href='#' onClick={this.join(game)}>
+              <li key={game}><a href='#' style={link} onClick={this.join(game)}>
                 Game #{game}
               </a></li>
             );

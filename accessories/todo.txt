@@ -1,0 +1,2 @@
+disconnect actioncable for back button
+add aasm state to games

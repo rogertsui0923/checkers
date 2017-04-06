@@ -16,6 +16,7 @@ export default class Game extends Component {
 
     this.state = {
       openGames: [],
+      subscription: null,
 
       game: null,
       isWhite: true,
@@ -73,7 +74,7 @@ export default class Game extends Component {
 
   setupWebSocket(id) {
     const cable = ActionCable.createConsumer("ws://localhost:3000/cable");
-    cable.subscriptions.create({channel: "GameChannel", id: id}, {
+    const sub = cable.subscriptions.create({channel: "GameChannel", id: id}, {
       connected: () => { alert(`Connecting to Game #${id}`); },
       disconnected: () => { alert(`Disconnecting from Game #${id}`); },
       received: (data) => {
@@ -81,6 +82,7 @@ export default class Game extends Component {
         this.setState({ selected: null, filteredMoves: [] });
       },
     });
+    this.setState({ subscription: sub });
   }
 
   start() {
@@ -107,8 +109,10 @@ export default class Game extends Component {
   }
 
   back() {
+    if (this.state.subscription) this.state.subscription.unsubscribe();
     this.setState({
       openGames: [],
+      subscription: null,
       game: null,
       isWhite: true,
       AI: false,

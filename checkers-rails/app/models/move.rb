@@ -148,8 +148,8 @@ class Move < ApplicationRecord
     return [extreme, best_move]
   end
 
-
-
+  # Kept for sentimental reasons but never called; played and lost around
+  # 100 checkers games with minimaxWithBugs
   def minimaxWithBugs(board, player, depth, piece=nil)
     return [heuristic(board), nil] if depth == 0
 
